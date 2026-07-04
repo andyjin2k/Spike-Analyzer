@@ -98,13 +98,38 @@ def find_straight_frame(is_standing_straight, frame_data):
 
 
 def contact_height(frame, contact_frame):
-    real_height = int(input("What is the height of your nose in cm's:"))
-    nose = landmarks[0]
-    wrist = landmarks[16]
-    heel = landmarks[30]
-    nose_height = frame.heel.y - frame.nose.y
-    fake_contact_height = frame.heel.y - contact_frame.wrist.y
+    nose = frame["landmarks"][0]
+    heel = frame["landmarks"][30]
+    wrist = contact_frame["landmarks"][16]
+
+    if nose.visibility < 0.5 or heel.visibility < 0.5 or wrist.visibility < 0.5:
+        return None
+
+    real_height = int(input("What is your heel-to-nose height in cm's:"))
+    nose_height = heel.y - nose.y
+    fake_contact_height = heel.y - wrist.y
     real_contact_height = (real_height/nose_height)*fake_contact_height
     return real_contact_height
+
+def is_planted(standing_frame, contact_frame, frame_data):
+    s_heel = standing_frame["landmarks"][30]
+    starting_point = frame_data.index(standing_frame)
+    ending_point = frame_data.index(contact_frame)
+    search_list = frame_data[starting_point:ending_point]
+    y = s_heel.y
+    margin = y - 0.02
+    count = 0
+    plant_list = []
+    last_three = []
+    for frame in reversed[search_list]:
+        while count < 3:
+            if frame["landmarks"][30] >= margin:
+                end = search_list.index(frame)
+                start = end - 2
+                last_three = search_list[start:end]
+                
+                count += 1
+
+
 
 
