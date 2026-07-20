@@ -110,26 +110,34 @@ def contact_height(frame, contact_frame):
     fake_contact_height = heel.y - wrist.y
     real_contact_height = (real_height/nose_height)*fake_contact_height
     return real_contact_height
+def is_planted(frame, standing_frame):
+    
+    standing_y = standing_frame["landmarks"][30].y - 0.02
+    if frame["landmarks"][30].y >= standing_y:
+        return True
+    else:
+        return False
 
-def is_planted(standing_frame, contact_frame, frame_data):
-    s_heel = standing_frame["landmarks"][30]
-    starting_point = frame_data.index(standing_frame)
-    ending_point = frame_data.index(contact_frame)
-    search_list = frame_data[starting_point:ending_point]
-    y = s_heel.y
-    margin = y - 0.02
-    count = 0
-    plant_list = []
-    last_three = []
-    for frame in reversed[search_list]:
-        while count < 3:
-            if frame["landmarks"][30] >= margin:
-                end = search_list.index(frame)
-                start = end - 2
-                last_three = search_list[start:end]
-                
-                count += 1
+counter = 0
+def create_planted_frames(contact_frame, frame_data, counter, standing_frame):
+    planted_frames = []
+    start = frame_data.index(standing_frame)
+    end = frame_data.index(contact_frame)
+    search_list = reversed(frame_data[start:end])
+    last_two = []
+    for frame in search_list:
+        last_two.pop(0) if len(last_two) == 2 else None
+        last_two.append(frame)
+        planted = is_planted(frame, standing_frame)
+        if planted: 
+            counter += 1
+        elif planted is False:
+            counter += 1
+        if planted != is_planted(last_two[0], standing_frame):
+            counter = 0
+        if counter == 3:
+            planted_frames.append(frame)
+    return planted_frames
+        
 
-
-
-
+    
